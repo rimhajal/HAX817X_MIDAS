@@ -19,7 +19,7 @@ standardiser <- function (X, Y) {
   return(X, Y)
 }
 
-### méthode 3
+# supprimer aléatoirement les données
 suppression_aléatoire_3 <- function (Y, proportion) {
   données <- as.vector(Y)
   indicatrices <- matrix(ncol=5, nrow=nrow(Y)*ncol(Y))
