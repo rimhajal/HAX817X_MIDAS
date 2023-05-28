@@ -46,8 +46,8 @@ visualisation_données_manquantes <- function (Y) {
   visualisation <- (Y %>%
                       as.data.frame() %>%
                       mutate(row_id=row_number()) %>%
-                      pivot_longer(-row_id, names_to="feature", values_to="values") %>%
-                      ggplot(aes(x=feature,y=row_id,fill=values))+
+                      pivot_longer(-row_id, names_to="feature", values_to="valeurs") %>%
+                      ggplot(aes(x=feature,y=row_id,fill=valeurs))+
                       geom_tile()+
                       theme(axis.text.x = element_text(angle = 90, size=5))+
                       labs(x = "variable", y = "numéro de ligne")+
