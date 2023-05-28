@@ -25,40 +25,6 @@ dupliquer <- function (données) {
 }
 
 # supprimer aléatoirement les données
-### méthode 1
-suppression_aléatoire_1 <- function (données_dupliquées, données_dupliquées_bis, proportion = 0.3) {
-  emplacement <<- sample(nrow(données)*ncol(données), round(proportion * nrow(données_dupliquées) * ncol(données_dupliquées)))
-  données_dupliquées[emplacement] <<- NA
-  données_dupliquées_bis[emplacement] <<- NA
-}
-### méthode 2
-suppression_aléatoire_2 <- function (données_dupliquées, données_dupliquées_bis, proportion) {
-  nombre_lignes <- nrow(données_dupliquées_bis)
-  nombre_colonnes <- ncol(données_dupliquées_bis)
-  nombre_données <- nombre_lignes*nombre_colonnes - sum(is.na(données_dupliquées_bis))
-  nombre_pseudomanquantes <- floor(proportion * nombre_données)
-  for (N in (1:nombre_pseudomanquantes)) {
-    i <- sample(1:nombre_lignes, 1)
-    j <- sample(1:nombre_colonnes, 1)
-    if (is.na(données_dupliquées_bis[i,j]) == FALSE) {données_dupliquées_bis[i,j] <<- NA}
-    if (is.na(données_dupliquées[i,j]) == FALSE) {données_dupliquées[i,j] <<- NA}
-  }
-}
-suppression_aléatoire_2bis <- function (données_dupliquées_bis, proportion) {
-  nombre_lignes <- nrow(data)
-  nombre_colonnes <- ncol(data)
-  nombre_données <- nombre_lignes*nombre_colonnes - sum(is.na(données_dupliquées_bis))
-  nombre_pseudomanquantes <- floor(proportion * nombre_données)
-  N <- 0
-  while (N < nombre_pseudomanquantes) {
-    i <- sample(1:nombre_lignes, 1)
-    j <- sample(1:nombre_colonnes, 1)
-    if (is.na(données_dupliquées_bis[i,j]) == FALSE) {données_dupliquées_bis[i,j] <<- NA}
-    if (is.na(données_dupliquées_bis[i,j]) == TRUE) {données_dupliquées_bis[i,j] <<- données_dupliquées_bis[i,j]}
-    N <- N+1
-  }
-}
-### méthode 3
 suppression_aléatoire_3 <- function (données_dupliquées_bis, proportion) {
   données <- as.vector(données_dupliquées_bis)
   indicatrices <- matrix(ncol=5, nrow=nrow(données_dupliquées_bis)*ncol(données_dupliquées_bis))
@@ -86,8 +52,8 @@ visualisation_données_manquantes <- function (données_dupliquées) {
   visualisation <- (données_dupliquées %>%
                       as.data.frame() %>%
                       mutate(row_id=row_number()) %>%
-                      pivot_longer(-row_id, names_to="feature", values_to="values") %>%
-                      ggplot(aes(x=feature,y=row_id,fill=values))+
+                      pivot_longer(-row_id, names_to="feature", values_to="valeurs") %>%
+                      ggplot(aes(x=feature,y=row_id,fill=valeurs))+
                       geom_tile()+
                       theme(axis.text.x = element_text(angle = 90, size=5))+
                       labs(x = "variable", y = "numéro de ligne")+
