@@ -6,7 +6,7 @@ library(magrittr)
 library(Metrics)
 
 # importer les données
-données <- read.table("/Users/leeloo/Documents/SSD/semestre\ 2/projet/Regions.txt", header=TRUE, row.names=1)
+données <- read.table("Regions.txt", header=TRUE, row.names=1)
 données <- data.matrix(données)
 X <- data.matrix(données[,1:34])
 Y <- data.matrix(données[,35:65])
