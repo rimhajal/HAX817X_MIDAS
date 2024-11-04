@@ -1,0 +1,1031 @@
+\documentclass[12pt, openany, fleqn, french]{article}
+
+% packages
+\usepackage[utf8x]{inputenc}
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage[french]{babel}
+%\usepackage{libertine}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{minted}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{algorithm2e}
+\usepackage{algpseudocode} 
+
+\newtheorem*{remark}{Remarque}
+\newtheorem{de}{Définition}[subsection] % les définitions et les théorèmes sont
+\newtheorem{theo}{Théorème}[section]    % numérotés par section
+\newtheorem{prop}[theo]{Proposition}    % Les propositions ont le même compteur
+                                        % que les théorèmes
+
+
+% mots-clés
+\SetKw{Function}{Fonction}
+\SetKw{EndFunction}{FinFonction}
+\SetKw{Return}{Sortie}
+\renewcommand{\algorithmicend}{\textbf{Fin}}
+\renewcommand{\algorithmicif}{\textbf{Si}}
+\renewcommand{\algorithmicthen}{\textbf{Alors}}
+\renewcommand{\algorithmicelse}{\textbf{Sinon}}
+\renewcommand{\algorithmicfor}{\textbf{Pour}}
+\renewcommand{\algorithmicforall}{\textbf{Pour tout}}
+\renewcommand{\algorithmicdo}{\textbf{Faire}}
+\renewcommand{\algorithmicwhile}{\textbf{Tant que}}
+\newcommand{\algorithmicelsif}{\algorithmicelse\ \algorithmicif}
+\newcommand{\algorithmicendif}{\algorithmicend\ \algorithmicif}
+\newcommand{\algorithmicendfor}{\algorithmicend\ \algorithmicfor}
+
+% mise en forme
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+\newcommand{\hsp}{\hspace{20pt}}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\linespread{1.5}
+\captionsetup{justification=centering}
+
+% corps de texte
+\begin{document}
+\selectlanguage{french}
+% page de garde
+\begin{titlepage}
+  \begin{sffamily}
+  \begin{center}
+
+    % logo de l'université
+    \includegraphics[scale=0.5]{logos/logo_universite.png}~\\[1.5cm] 
+    \textsc{\LARGE Université de Montpellier}\\[1cm]
+    \textsc{\large Rapport de Projet}\\[1.5cm]
+    
+    % titre
+    \HRule \\[0.4cm]
+    { \huge \bfseries Techniques d'imputation de données manquantes fondées sur la reconstitution de tableaux\\[0.4cm] }
+
+    \HRule \\[1.5cm]
+    %\includegraphics[scale=0.2]{img2.JPG} \\ [4cm]
+
+    % auteurs et tuteur
+    \begin{minipage}{0.4\textwidth}
+      \begin{flushleft} \large
+        Rim \textsc{Alhajal}\\
+        Maryam \textsc{Akkouh}\\
+        Lilou \textsc{Zulewski}\\
+      \end{flushleft}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+      \begin{flushright} \large
+        \emph{Tuteur :} M. \textsc{Bry}\\
+        %\emph{Jury :} ? \textsc{?}\\
+      \end{flushright}
+    \end{minipage}
+
+    \vfill
+
+    \begin{center}
+        \includegraphics[width=0.15\textwidth]{logos/logo-ssd.png}
+        \hfill
+        \includegraphics[width=0.15\textwidth]{logos/logo_fds.png}
+    \end{center}
+
+    % bas de page
+    {\large Février 2023 - Mai 2023}
+
+  \end{center}
+  \end{sffamily}
+\end{titlepage}
+
+
+% résumé et remerciements
+\newpage
+
+  \noindent \textbf{\LARGE{Résumé}} \\
+
+    % résumé
+    En statistique, l’absence de valeurs pour une observation d’une variable donnée est appelée donnée manquante. Ce phénomène d'incomplétude des tableaux de données est un problème fréquemment rencontré.
+    Le problème potentiel en analyse statistique est d'obtenir des données qui ne reflètent pas fidèlement la réalité.
+    En revanche, l'utilisation de tableaux de données incomplets empêche l'application standard des méthodes statistiques.
+    Grâce à des méthodes de reconstruction adaptées aux données, il est possible de remplacer les valeurs manquantes par des estimations plausibles. Cela permet de préserver la faisabilité des analyses statistiques. Le présent travail explore deux de ces méthodes, appliquant des principes d'analyse factorielle à la reconstitution de tableau.
+    \\ [1.5cm] 
+  
+  \noindent \textbf{\LARGE{Remerciements}} \\
+
+    % remerciements
+    \textit{Nous tenons à exprimer nos sincères remerciements à Monsieur Xavier Bry pour sa précieuse contribution en tant que tuteur de ce projet. Sa présence et son soutien ont été d'une importance capitale pour le développement et l'aboutissement de notre projet. Grâce à ses conseils avisés, ses retours constructifs et sa capacité à nous guider, nous avons pu progresser de manière significative.}
+
+
+    
+
+% table des matières
+\newpage
+\tableofcontents
+
+% introduction
+\newpage
+\section{Introduction}
+
+    Les données manquantes sont une réalité fréquente dans de nombreuses études et analyses statistiques. Divers facteurs tels que des erreurs de collecte, des non-réponses ou des limitations techniques peuvent être à l'origine de ces données manquantes. Cependant, l'absence de ces données peut compromettre la validité et la fiabilité des analyses, limitant ainsi les conclusions et les décisions basées sur ces données.
+
+    Pour pallier ce problème, de nombreuses études ont été menées pour développer des techniques d'imputation de données. Ces techniques consistent à approximer les valeurs manquantes en se basant sur les informations disponibles dans le jeu de données. Parmi les approches d'imputation, les techniques fondées sur la reconstitution de tableaux se sont avérées être des méthodes efficaces et fréquemment utilisées.
+
+    Les techniques d'imputation de la reconstitution de tableaux reposent sur l'hypothèse selon laquelle les valeurs manquantes peuvent être déduites en se référant aux valeurs présentes dans le tableau de données. Ces méthodes utilisent différentes approches pour estimer les valeurs manquantes.
+
+    L'objectif de ce projet est d'explorer et d'analyser différentes techniques d'imputation de données manquantes fondées sur la reconstitution de tableaux, grâce notamment à la \textbf{SVD}. 
+
+    Nous aborderons les différentes étapes du processus d'imputation, notamment le choix des méthodes d'imputation appropriées et l'évaluation des performances des techniques utilisées, et nous présenterons des exemples concrets d'application.
+
+% première partie
+\newpage
+\section{$1$ seul tableau}
+
+On considère Y un tableau de valeurs numériques qui contient des données manquantes dans certaines cases. Il s'agit ici de proposer, pour ces cases, des valeurs "raisonnables" au sens où elles suivent la structure générale de corrélation entre les variables.
+On va alors utiliser la décomposition en valeurs singulières, aussi appelée SVD (Singular Value Decomposition), pour imputer les valeurs manquantes de Y. 
+
+  \subsection{Approximation de rang $h$ d'un tableau}
+
+    Soit $Z$ un tableau de données complet de taille $(n,p)$. Il s'agit de retrouver la formule d'approximation de rang $h$ de $Z$ à partir des valeurs et vecteurs propres de $Z^{t}Z$ et $ZZ^{t}$. On commence provisoirement par la preuve de cette approximation pour le rang $1$. On désire donc trouver la meilleure approximation de rang $1$ de $Z$, c'est-à-dire $\hat{Z}_1$ qui minimise $[\![Z-\hat{Z}_1]\!]^{2}$ où $[A|B]=$ tr($A^{t}B$) est le produit scalaire de deux matrices de taille $(n,p)$. \\
+
+    % question 1
+    Soit $T$ un tableau de données représenté sous forme de matrice de taille $(n,p)$ et de rang $1$. La colinéarité de toutes les colonnes de cette matrice, en raison du rang $1$ de cette dernière, permet de les réécrire aisément en utilisant un multiple de la première colonne :  \\
+\begin{center}
+    
+
+    T = 
+    $\begin{pmatrix} 
+    t_{11} & k_{2}t_{11} & \cdots & k_{p}t_{11} \\ 
+    t_{21} & k_{2}t_{21} & \cdots & k_{p}t_{21} \\ 
+    \vdots & \vdots & \ddots & \vdots \\ 
+    t_{n1} & k_{2}t_{n1} & \cdots & k_{p}t_{n1}
+    \end{pmatrix}$
+    avec 
+    K =
+    $\begin{pmatrix} 
+    k_{1}  \\ 
+    k_{2}  \\ 
+    \vdots \\ 
+    k_{p}
+    \end{pmatrix}$ $\in \mathbb{R}^p $
+    où $k_{1} = 1$ 
+\end{center}
+
+\hspace*{2cm}
+
+    On note également 
+    $T^{1}$ = 
+    $\begin{pmatrix} 
+    t_{11}  \\ 
+    t_{21}  \\ 
+    \vdots \\ 
+    t_{n1}
+    \end{pmatrix}$  la première colonne de $T$. \\
+
+    
+\begin{prop}
+    $T$ peut s'écrire $T= c ab^{t}$ avec $c \in \mathbb{R}$, $a\in\mathbb{R}^{n}$ et $b\in\mathbb{R}^{p}$ où $a$ et $b$ sont des vecteurs normés.
+\end{prop}
+\begin{proof}
+    En posant $\alpha$ = $T^{1}$ et $\beta$ = $K$, le tableau $T$ de taille $(n,p)$ et de rang $1$ peut s'écrire $T = \alpha \beta^{t}$ où $\alpha\in\mathbb{R}^{n}$ et $\beta\in\mathbb{R}^{p}$. On définit alors respectivement les vecteurs $a$ et $b$ comme  $a = \frac{\alpha}{||\alpha||} $ et $b = \frac{\beta}{||\beta||}$ ainsi que la constante $c$ comme $c = ||\alpha|| ||\beta||$ : $a$ et $b$ sont donc normés. $T$ peut alors s'écrire : $$T = \alpha \beta^t = \frac{\alpha}{||\alpha||} \times ||\alpha|| \times \frac{\beta^t}{||\beta||} \times ||\beta|| = cab^t$$
+\end{proof}
+
+
+    % question 2
+    Il est désormais possible de résoudre le programme $P = \displaystyle \min_{\substack{c \in \mathbb{R} \\ a \in \mathbb{R}^{n}, a^{t}a=1 \\ b \in \mathbb{R}^{p} , b^{t}b=1}}[\![Z-cab^{t}]\!]^{2}$. \\
+    
+
+\begin{prop}
+$E=ab^{t}$ est une matrice de taille $(n,p)$ normée pour le produit scalaire $[.|.]$.
+\end{prop}
+\begin{proof}
+    \begin{align}
+        [ab^{t}|ab^{t}] &= tr((ab^{t})^{t}(ab^{t})) \\
+                        &= tr(ba^{t}ab^{t}) \\
+                        &= tr(ba^{t}ab^{t}) \\
+                        &= tr(b^{t}ba^{t}a) \\
+                        &= tr(1\times 1) \\
+                        &= 1
+    \end{align}
+     Le passage de $(3)$ à $(4)$ s'effectue à l'aide de la propriété d'invariance circulaire de la trace. Celui de $(4)$ à $(5)$ est évident puisque les vecteurs $a$ et $b$ sont tous deux normés.
+\end{proof}
+
+\begin{prop}
+$c$ correspond à la projection orthogonale de $Z$ sur $E = ab^t$.
+\end{prop}
+\begin{proof}
+     Dans un premier temps, on suppose $E$ connu pour estimer $c$ et on travaille à présent dans l'espace vectoriel $\mathbb{R}^{n\times p}$ des matrices de taille $n\times p$. On représente alors $Z$ et $E$ dans cet espace vectoriel par deux vecteurs :
+
+    \hspace{2cm}
+
+    \begin{figure}[H]
+	   \begin{minipage}[b]{1.0\linewidth}
+	   \includegraphics[scale=0.30]{representation_graphique_ZE.jpg}
+		  \centering\caption{Représentation géométrique de $Z$ et $E$}
+	   \end{minipage}\hfill	
+    \end{figure}
+
+   
+
+    \hspace{2cm}
+
+    On note $\hat{c}$ le $c$ optimal dans l'expression de $cab^t$. Géométriquement, il est clair que $\hat{c}$ s'obtient à partir de la projection orthogonale de $Z$ sur $E$. Ainsi, on a :
+
+
+      $$\hat{c} ~ E = \Pi_E Z = [Z|E] ~E \Rightarrow \hat{c}= [Z|E] = tr(Z^tE)=tr(Z^tab^t)$$
+  
+
+\end{proof}
+
+\begin{prop}
+    Résoudre $R$ revient à résoudre  ~~$Q$: $\displaystyle \max_{\substack{ a \in \mathbb{R}^{n}, a^{t}a=1 \\ b \in \mathbb{R}^{p} , b^{t}b=1}}[Z|ab^t]$. 
+\end{prop}
+
+\begin{proof}
+        En utilisant le théorème de Pythagore dans le triangle rectangle formé entre $Z$, $\hat{c}ab^t$ et le vecteur $Z\hat{c}ab^t$, on obtient l'expression suivante:
+    
+        $$||cab^t||^2 + ||Z||^2sin^2(\alpha) = ||Z||^2
+    \Leftrightarrow c^2 + ||Z||^2 sin^2(\alpha) = ||Z||^2
+    $$
+
+    En effet, $ab'$ est un vecteur normé et $c\in\mathbb{R}$. Finalement, minimiser $||Z||^2sin^2(\alpha)$ revient donc à maximiser $c^2$ avec $c = \Pi_EZ = [Z|E]= [Z|ab^t]$. Ainsi, le $E= ab^t$ solution est celui du programme 
+    \begin{center}
+        $Q$: $\displaystyle \max_{\substack{ a \in \mathbb{R}^{n}, a^{t}a=1 \\ b \in \mathbb{R}^{p} , b^{t}b=1}}[Z|ab^t]$. 
+    \end{center}
+    
+\end{proof}
+
+
+
+\subsubsection{Résolution du programme $P$}
+% si on met des sous sous parties il faudrait réfléchir à comment faire
+
+    Résoudre le programme $P$ revient à trouver les $a\in\mathbb{R}^n$ et $b\in\mathbb{R}^p$ normés minimisant $[|Z - cab^t|]^2$. Cependant, comme démontré ci-dessus, résoudre $P$ équivaut à résoudre $Q$ : il faut alors trouver les vecteurs $a$ et $b$ normés qui maximisent $[Z|ab^t]$. 
+    
+    Par invariance de la trace par permutation circulaire on a : $$[Z|ab^t] = tr(Z^tab^t) = tr(b^t Z^t a)$$ 
+    
+    Or,  $b^t Z^t a \in \mathbb{R}$ donc $tr(b^t Z^t a) = b^t Z^t a$.\\ 
+
+    Pour résoudre ce programme, on a le Lagrangien :
+    $$\mathcal{L} = a^tZb - \frac{\lambda}{2}(a^ta-1) - \frac{\nu}{2}(b^tb-1)$$
+    
+    qu'on dérive partiellement par rapport à $\lambda$, $\nu$, $a$ et $b$ d'où :
+    \begin{flalign}
+        &\frac{\partial \mathcal{L}}{\partial \lambda} = 0 \Leftrightarrow \frac{-1}{2}(a^ta - 1) = 0\Leftrightarrow a^ta =1 \\
+        &\frac{\partial \mathcal{L}}{\partial \nu} = 0 \Leftrightarrow \frac{-1}{2}(b^tb - 1) = 0\Leftrightarrow b^tb =1 \\
+        & \frac{\partial \mathcal{L}}{\partial a} = 0  \Leftrightarrow Zb - \lambda a = 0 \Leftrightarrow Zb = \lambda a\\
+        &\frac{\partial \mathcal{L}}{\partial b} = 0  \Leftrightarrow Z^t a - \nu b = 0 \Leftrightarrow Z^t a = \nu b
+    \end{flalign}
+
+    On obtient le système d'équations suivant: 
+
+    \begin{equation}
+        \begin{cases}
+        Zb = \lambda a \\
+        Z^t a = \nu b
+        \end{cases}
+        \quad\Leftrightarrow\quad
+        \begin{cases}
+         a^t Z b = a^t \lambda a\\
+        b^t Z^t a = b^t \nu b
+        \end{cases}
+        \quad\Leftrightarrow\quad
+        \begin{cases}
+         a^t Z b = \lambda \\
+        b^t Z^t a = \nu
+        \end{cases}
+        \quad\Rightarrow\quad
+        \begin{cases}
+        \lambda = \nu
+        \end{cases}
+    \end{equation}\\
+
+En effet, $(a^tZb) \in \mathbb{R} \Rightarrow (a^tZb)^t = b^t Z^ta $
+
+\begin{prop}
+    $a$ est le vecteur propre de $ZZ^t$ associé à sa plus grande valeur propre $\mu$.
+\end{prop}
+
+\begin{proof}
+    L'objectif étant de maximiser $a^tZb = \lambda = c $, $\lambda$ doit donc être maximale.
+
+\begin{center}
+\begin{aligned}
+    Z^ta &= \lambda b \\
+    \Leftrightarrow  ZZ^ta &= \lambda Z b \\
+    \Leftrightarrow ZZ^ta &= \lambda ^2 a 
+    \hspace{0,5cm}\text{d'après (9)}\\
+    \Leftrightarrow ZZ^ta &= \mu a 
+    \hspace{0,5cm}\text{où} \hspace{0,4cm} $\mu = \lambda^2 = c^2$
+\end{aligned}
+\end{center} 
+$a$ est alors le vecteur propre de $ZZ^t$ associé à sa plus grande valeur $\mu$ qui vérifie $c = \sqrt{\mu}$
+
+\end{proof}
+
+\begin{prop}
+    $b$ est le vecteur propre de $Z^tZ$ associé à sa plus grande valeur propre $\mu$.
+\end{prop}
+
+\begin{proof}
+    De la même manière $\mu = \lambda = c$ doit être maximale.
+
+\begin{center}
+\begin{aligned}
+    Zb &= \lambda a \\
+    \Leftrightarrow  Z^tZb &= \lambda Z^t a \\
+    \Leftrightarrow Z^tZb &= \lambda ^2 b 
+    \hspace{0,5cm}\text{d'après (10)}\\
+    \Leftrightarrow Z^tZb &= \mu b 
+\end{aligned}
+\end{center} 
+$b$ est alors le vecteur propre de $Z^tZ$ associé à sa plus grande valeur $\mu$ qui vérifie $ c = \sqrt{\mu}$
+\end{proof}
+
+
+    Finalement, on obtient la formule d'approximation de rang $1$  suivante $\hat{Z}_1 =  \sqrt{\mu}~\nu ~u^t$ pour la matrice $Z$. Dans cette expression, $\nu$ est le vecteur propre normé de $ZZ^t$ associé à sa plus grande valeur propre $\mu$ et $u$ est le vecteur propre normé de $Z^tZ$ associé à sa plus grande valeur propre qui est également $\mu$.
+
+
+ \subsubsection{Formule d'approximation finale}
+
+    On admet provisoirement que la formule d'approximation de rang $h$ de $Z$ est : 
+    $$\hat{Z}_h = \sum_{k=1}^h \sqrt{\lambda_k}~u_k ~\nu_k^t$$
+    
+    Ici, les $\nu_k$ (resp. $u_k$) sont les vecteurs propres normés de $Z^tZ$ (resp. $ZZ^t$) associés à la $k^{ \grave{e}me}$ valeur propre $\lambda_k$ dans l'ordre décroissant. 
+
+    Plus généralement, la SVD est une méthode de factorisation d'une matrice $Z$ de dimension $n*p$ telle que  
+    $Z = U \Sigma V^*$, avec :
+    \begin{itemize}
+         \item $\Sigma$ matrice diagonale des valeurs singulières de dimension $n*p$ 
+          \item $U$ matrice unitaire $n*n$
+         \item $V^*$ transposée de $V$ matrice unitaire $p*p$ 
+    \end{itemize} 
+
+\hspace{2cm}
+
+Ces matrices $\Sigma$, $U$ et $V$ sont obtenues grâce à la méthode décrite dans cette partie. En effet : 
+
+\begin{itemize}
+    \item $\Sigma$ contient dans ses coefficients diagonaux les valeurs singulières du tableau Z, elles correspondent aux racines des valeurs propres de $ZZ^t$
+    \item $V = [\nu_1,...,\nu_r]$ 
+    \item $U = [u_1,...,u_r]$
+\end{itemize}
+
+Où $r = rg(Z)= rg(Z^tZ)=rg(ZZ^t)$
+\begin{remark}
+   $r$ est remplacé par $h$ pour l'approximation de rang $h$. 
+\end{remark}
+
+
+\newpage
+
+\subsection{Combler les trous d'un tableau à partir de la formule d'approximation de rang $h$}
+
+    On souhaite maintenant implémenter la méthode ci-dessus en langage de programmation R. Pour une meilleure compréhension, l'ensemble des fonctions seront rédigées ici en pseudo-code.
+    
+    Afin de combler les valeurs manquantes d'un jeu de données, on applique la décomposition en valeurs singulières puis on utilise la formule d'approximation de rang $h$.
+    
+
+\subsubsection{Suppression aléatoire des données}
+
+Dans le cadre de cette étude, la base de données choisie décrit les différentes régions de France sans aucune donnée manquante. Il a donc fallu créer des données pseudo-manquantes. Pour cela, trois méthodes différentes ont été définies puis la plus rapide d'entre elles a ainsi été sélectionnée. La première repose sur la fonction automatique \textit{sample} du logiciel R. \\ 
+
+    \begin{algorithm}[H]
+    \footnotesize
+\Function{suppression\_aléatoire\_1} {(données\_dupliquées, données\_dupliquées\_bis, proportion)}
+    \State emplacement \gets tirage \, al\acute{e}atoire \, de \, nombre \, de \, lignes \, * \, nombre \, de \, colonnes \, valeurs \, sur \, une \, intervalle \, allant \, de \, 1 \, \grave{a} \, l'arrondie \, de \, la \, proportion \, donn\acute{e}e \\ $\, des \, dimensions$\\
+    \State données\_dupliquées[emplacement] \gets valeur \, manquante\\
+    \State données\_dupliquées\_bis[emplacement] \gets valeur \, manquante\\
+    \State \Return données\_dupliquées, données\_dupliquées\_bis\\
+    \EndFunction
+    \end{algorithm}
+
+    \vspace{0.5cm}
+    La seconde s'appuie sur une boucle parcourant l'ensemble des données et affectant de manière aléatoire et uniforme le nombre de données manquantes souhaité.
+    
+\begin{algorithm}[H]
+\footnotesize
+\Function{suppression\_aléatoire\_2} {($donn\acute{e}es\_dupliqu\acute{e}es$, $donn\acute{e}es\_dupliqu\acute{e}es\_bis$, $proportion$)}
+    \State nombre\_données \gets nombre \, lignes*nombre \, colonnes-somme \, des \, valeurs \, manquantes \, pour \, donn\acute{e}es\_dupliqu\acute{e}es\_bis\\
+    \State nombre\_pseudomanquantes \gets la \, valeur \, arrondie \, \grave{a} \, l'entier \, inf\acute{e}rieur \, le \, plus \, proche \, de \, proportion*nombre\_donn\acute{e}es\\
+    \Pour{N \in (1 \, \grave{a} \, nombre\_pseudomanquantes)}{
+    \State \Si{(données\_dupliquées\_bis[ligne,colonne] est une valeur manquante)} {données\_dupliquées\_bis[ligne,colonne] \gets valeur \, manquante\\}
+    \State \Si{(données\_dupliquées[ligne,colonne] est une valeur manquante)}{données\_dupliquées[ligne,colonne] \gets valeur \, manquante\\}
+    }
+    \State \Return données\_dupliquées, données\_dupliquées\_bis\\
+    \EndFunction
+\end{algorithm}
+
+\vspace{0.5cm}
+
+La dernière méthode consiste à introduire une composante aléatoire dans les données, puis à attribuer les valeurs manquantes en fonction de cette composante aléatoire.
+
+\begin{algorithm}[H]
+\footnotesize
+\Function{suppression\_aléatoire\_3} {($donn\acute{e}es\_dupliqu\acute{e}es\_bis$, $proportion$)}
+    \State données \gets vecteur(donn\acute{e}es\_dupliqu\acute{e}es\_bis)\\
+    \State indicatrices \gets matrice \, \grave{a} \, 5 \, colonnes \, et \, autant \, de \, lignes \, que \, d\textquotesingle individus \, dans \, le \, tableau \\
+    \State indicatrices[colonne 1]\gets vecteur(donn\acute{e}es\_dupliqu\acute{e}es\_bis)\\
+    \Pour{la longueur du vecteur données}{
+    \State \Si{données(ligne) est une valeur manquante} {indicatrices[ligne, colonne 2] \gets 0\\} \Sinon {indicatrices[ligne, colonne 2] \gets tirage \, uniforme \, sur \, ]1,2[\\}\\}
+    \State indicatrices[colonne 3] \gets 1 \, \grave{a} \, nombre \, de \, lignes \, de \, donn\acute{e}es\_dupliqu\acute{e}es\_bis \, r\acute{e}p\acute{e}t\acute{e} \, pour \, le \, nombre \, de \, colonnes \\
+    \State indicatrices[colonne 4] \gets 1 \, \grave{a} \, nombre \, de \, colonnes \, de \, donn\acute{e}es\_dupliqu\acute{e}es\_bis \, r\acute{e}p\acute{e}t\acute{e} \, pour \, le \, nombre \, de \, lignes \\
+    \State ordonner indicatrices en ordre croissant pour la colonne 2\\
+    \State nombre\_données \gets nombre \, de \, lignes (donn\acute{e}es\_dupliqu\acute{e}es\_bis)*nombre \, de \, colonnes (donn\acute{e}es\_dupliqu\acute{e}es\_bis)-somme \, des \, valeurs \, manquantes (donn\acute{e}es\_dupliqu\acute{e}es\_bis))\\
+    \State nombre\_pseudomanquantes \gets la \, valeur \, arrondie \, \grave{a} \, l'entier \, inf\acute{e}rieur \, le \, plus \, proche \, de \, proportion*nombre\_donn\acute{e}es\\
+    \State indicatrices[dernier 0 + nombre\_pseudomanquantes + 1, colonne 2] \gets 0 \\
+    \State indicatrices[colonne 2] \gets remplacer \, toutes \, les \, valeurs \,\neq 1 \, par \, 1\\
+    \State indicatrices[colonne 5] \gets indicatrices[colonne 1]*indicatrices[colonne 2]\\
+    \State indicatrices[colonne 5] \gets remplacer \, les \, valeurs \, nulles \, dans \, la \, colonne \, 5 \, par \, des \, valeurs \, manquantes\\
+    \State \Pour{la longueur du vecteur données\_dupliquées\_bis}{\State remplacer dans données\_dupliquées\_bis pour les coordonnées dans les colonnes 3 et 4 de la matrice indicatrices par les valeurs dans la colonne 5\\
+    \State remplacer dans données\_dupliquées pour les coordonnées dans les colonnes 3 et 4 de la matrice indicatrices par les valeurs dans la colonne 5\\}
+    \newpage
+    \State \Return données\_dupliquées, données\_dupliquées\_bis\\
+    \EndFunction
+
+\end{algorithm}
+
+    \vspace{0,5cm}
+    En pratique, la méthode la plus rapide est la troisième. En effet, la différence n'est pas frappante sur notre base de données mais elle augmenterait considérablement sur des tableaux de données contenant des milliers de lignes et colonnes. 
+
+    Plus précisément, cette dernière méthode consiste à créer une matrice de $5$ colonnes et d'autant de lignes que de données dans le tableau. 
+    
+    La première colonne de cette matrice se voit affecter le tableau de données sous forme de vecteur. La seconde se remplit par des valeurs dans l'intervalle semi-ouvert $[1;2[$ et un $0$ pour les lignes où des valeurs manquantes composent la première colonne : ces valeurs sont appelées "aléa". À cette étape, la colonne est triée par ordre croissant afin d'assigner un nouveau nombre de $0$ aux valeurs manquantes, en fonction de la proportion souhaitée. Cela permettra de constituer les nouvelles données manquantes. 
+    
+    Ensuite, la troisième et la quatrième colonne contiennent respectivement les indices de ligne et de colonne des données dans le tableau de données initial. Enfin, la cinquième colonne reconstitue données en remplaçant les aléas par leur valeur initiale ou par une valeur manquante si celui-là était $0$.
+    Pour mieux visualiser la dispersion des valeurs manquantes, on a choisi de les représenter dans un tableau où ces valeurs sont indiquées par des cases rouges grâce à la fonction 
+    $\textit{visualisation\_données\_manquantes}$ ($\textit{cf. Annexe}$).
+
+
+    On a également la fonction suivante :
+
+\hspace{1cm}
+
+\begin{algorithm}[H]
+\footnotesize
+    \Function{standardiser} {($donn\acute{e}es$)}
+    \State données \gets (donn\acute{e}es - moyenne) / \acute{e}cart \, type} \\
+    \State \Return données\\
+    \EndFunction
+\end{algorithm}
+
+    \vspace{0,5cm}
+    On utilisera la fonction \textit{dupliquer} suivante pour créer des duplicata des données afin d'évaluer la précision de l'imputation. 
+    \vspace{0,5cm}
+
+\begin{algorithm}[H]
+\footnotesize
+\Function{dupliquer} {($donn\acute{e}es$)}
+    \State $donn\acute{e}es\_dupliqu\acute{e}es \gets donn\acute{e}es$
+    \State $donn\acute{e}es\_dupliqu\acute{e}es\_bis \gets donn\acute{e}es$
+    \State \Return $donn\acute{e}es\_dupliqu\acute{e}es$, $donn\acute{e}es\_dupliqu\acute{e}es\_bis$\\
+    \EndFunction
+\end{algorithm}
+
+\subsubsection{Utilisation de la SVD}
+    \vspace{0,5cm}
+    L'étape préliminaire à la SVD est l'imputation des valeurs manquantes par la moyenne de la colonne dans le cas où l'utilisateur a fait le choix de ne pas centrer-réduire les données.
+    \vspace{0,5cm}
+
+\begin{algorithm}[H]
+\footnotesize
+    \Function{imputer\_colonne\_par\_moyenne} {($donn\acute{e}es\_dupliqu\acute{e}es\_bis$)}
+    \State moyenne\_colonne \gets vecteur \, des \, moyennes \, des \, colonnes \, de \, donn\acute{e}es\_dupliqu\acute{e}es\_bis \\
+    \State \Pour {le nombre de lignes de données\_dupliquées\_bis}{
+    \State \Pour {le nombre de colonnes de données\_dupliquées\_bis}{
+    \State \Si {données\_dupliquées\_bis(ligne,colonne) est une valeur manquante}{
+    données\_dupliquées\_bis[ligne,colonne] \gets moyenne\_colonne[colonne]\\
+    }\\
+    }\\
+    }
+    \State \Return données\_dupliquées\_bis\\
+    \EndFunction
+\end{algorithm}
+
+    \vspace{0,5cm}
+    Ensuite, on applique la SVD en s'appuyant sur la fonction \textit{eigen} de R qui calcule automatiquement les valeurs et vecteurs propres d'une matrice. L'imputation des valeurs manquantes par décomposition en valeurs singulières consiste en une boucle ne s'arrêtant que lorsque les valeurs imputées à l'étape $t$ sont proches de celles à l'étape $t-1$ (ici la précision choisie est de $10^{-7}$).
+    \vspace{0,5cm}
+
+\begin{algorithm}[H]
+\footnotesize
+    \Function{méthode\_svd} {($donn\acute{e}es$)}
+    \State A \gets matrice \, contenant \, les \, données \\
+  \State TA \gets transpos\acute{e}e \, de \, la \, matrice \, A\\
+  \State ATA \gets produit \, de \, A \, et \, A^{t}\\
+  \State ATA.e \gets valeurs \, et \, vecteurs \, propres \, de \, ATA\\
+  \State u \gets vecteurs \, propres \, de \, ATA\\
+  \State TAA \gets produit \, de \, A^{t} \, et \, A \\
+  \State TAA.e \gets valeurs \, et \, vecteurs \, propres \, de \, TAA\\
+  \State v \gets vecteurs \, propres \, de \, TAA\\
+  \State r \gets racines \, des \, valeurs \, propres \, de \, ATA \, sur \, la \, diagonale \, d\'une \, matrice\\
+  \State svd\_matrice \gets produit \, de \, u \,, \, r \, et \, v^{t}\\
+  \EndFunction
+\end{algorithm}
+
+\begin{algorithm}[H]
+\footnotesize
+    \Function{imputation\_svd} {($donn\acute{e}es\_dupliqu\acute{e}es$)}
+    \State epsilon \gets 1e-7 \\
+  \State erreur \gets 1\\
+  \State iteration \gets 0\\
+  \State données\_manquantes \gets valeurs \, manquantes \, dans \, donn\acute{e}es\_dupliqu\acute{e}es\\
+  \State mssold \gets moyenne((scale(donn\acute{e}es\_dupliqu\acute{e}es, moyenne\_colonne, FALSE)[!donn\acute{e}es\_manquantes])**2)\\
+  \State mss0 \gets moyenne(donn\acute{e}es\_dupliqu\acute{e}es[!donn\acute{e}es\_manquantes]**2)\\
+  \State \algorithmicwhile{ erreur $>$ epsilon }\algorithmicdo{
+    \State iteration \gets iteration + 1\\
+    \State données\_imputées \gets svd(donn\acute{e}es\_dupliqu\acute{e}es\_bis)\\
+    \State données\_dupliquées[données\_manquantes] \gets donn\acute{e}es\_imput\acute{e}es[donn\acute{e}es\_manquantes]\\
+    \State mss \gets moyenne(((donn\acute{e}es\_dupliqu\acute{e}es-donn\acute{e}es\_imput\acute{e}es)[!donn\acute{e}es\_manquantes])**2) \\
+    \State erreur \gets (mssold - mss)/mss0 \\
+    \State mssold \gets mss\\
+  }\\ 
+  \algorithmicend\\
+  \State eqmp \gets erreur\,quadratique\,moyenne\,de\,pr\acute{e}\,entre\,les\,donn\acute{e}es\,initiales\,et\,imput\acute{e}es\\
+  \State \Return Rang et Erreur Quadratique Moyenne de Prédiction\\
+  \EndFunction
+\end{algorithm}
+
+\subsubsection{Approximation de $h*$ le rang optimal}
+
+    \vspace{0,5cm}
+    Pour cette dernière étape, on commence par retirer les vraies valeurs manquantes de notre tableau, à savoir celles censées être initialement absentes. Puis, on itère $K$ fois les étapes suivantes :
+    \begin{itemize}
+        \item suppression de la proportion choisie de données pseudo-manquantes
+        \item application de la SVD pour tous les rangs de $1$ à $r$ où $r = rg(Z'Z)$
+        \item calcul de l'erreur quadratique moyenne
+    \end{itemize}
+    
+    \hspace{2cm}
+    
+    On détermine ensuite le rang optimal en identifiant celui pour lequel la valeur de l'erreur quadratique est minimale.
+
+    \begin{remark}
+        L'erreur quadratique moyenne d'imputation est calculée sur les données centrées-réduites ou originelles selon l'option choisie par l'utilisateur.
+    \end{remark}
+    \vspace{0,5cm}
+
+\begin{algorithm}[H]
+\footnotesize
+    \Function{approxRangOpt}{ (données, standardiser, K, proportionV, proportionF, méthode)}
+    \State \Si{standardiser==1}{standardiser(données)}\\
+    \State dupliquer(données)\\
+    \State moyenne\_colonne \gets vecteur \, des \, moyennes \, des \, colonnes \, de \, donn\acute{e}es\_dupliqu\acute{e}es\_bis \\
+    \State \Si{méthode==1, 2 ou 3} {appliquer méthode 1, 2 ou 3 de suppression aléatoire des valeurs manquantes avec proportionV}\\
+    \Pour{nombre de colonnes données\_dupliquées\_bis}{
+    \Pour{nombre de lignes de données\_dupliquées\_bis}{
+    \State \Pour{k \in [1 \, \grave{a} \, K]}{
+    \State \Si{méthode==1, 2 ou 3} {appliquer méthode 1, 2 ou 3 de suppression aléatoire des valeurs manquantes avec proportionF}\\
+    \State \Si {données\_dupliquées[ligne,colonne] est une valeur manquante}{\State données\_dupliquées[ligne,colonne] \gets moyenne\_colonne[colonne]\\}\\
+    \State appliquer la méthode svd sur données\_dupliquées[ligne,colonne]\\
+    \State calculer l'EQMP pour chaque rang à chaque itération\\
+    }\\
+    }\\
+    \State calculer la moyenne des EQMP pour chaque rang
+    \State identifier le rang où la valeur moyenne des EQMP est minimale\\
+    }
+    \State \Return EQMP minimale avec la ligne correspondante\\
+    \EndFunction
+\end{algorithm}
+
+\newpage
+
+\subsection{Applications Numériques}
+
+On utilise, comme précédemment, le tableau de données \textit{Régions} pour dresser le tableau des erreurs quadratiques moyennes en fonction de la proportion de vraies et fausses valeurs manquantes arrondies à $10^{-5}$ près.
+
+Il est important de distinguer les vraies données manquantes, qui sont les données réellement absentes du tableau de données initial, et les fausses données manquantes, qui ont été délibérément supprimées afin de reconstituer correctement le tableau. Cette distinction permet de comprendre que les fausses données manquantes sont utilisées dans le processus de reconstruction des données manquantes, tandis que les vraies données manquantes représentent les valeurs réelles non disponibles dans le tableau initial.
+
+\hspace{2cm}
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{||c || c c c c c c||} 
+ \hline
+ Fausses | Vraies & 0.1 & 0.2 & 0.3 & 0.4 & 0.5 & 0.6  \\ [0.1ex] 
+ \hline\hline
+ 0.1 & $8550$ & $5700$ & $13650$ & $15380$ & $21260$ & $23860$ \\ 
+ \hline
+ 0.2 & $490$ & $1720$ & $2290$ & $2360$ & $3770$ & $2060$ \\
+ \hline
+ 0.3 & $160$ & $140$ & $290$ & $390$ & $210$ & $210$ \\
+ \hline
+ 0.4 & $0.92$ & $4.85$ & $3.67$ & $9.96$ & $4.32$  & /\\
+ \hline
+ 0.5 & $0.03$ & $0.06$ & $0.24$ & $0.18$ &  / & / \\
+ \hline
+ 0.6 & $0.002$ & $0.01$ & $0.02$ & / &  / & / \\
+ \hline
+ \end{tabular}
+ \caption{Erreurs Quadratiques Moyennes en Fonction de la Proportion de Vraies et Fausses Valeurs Manquantes exprimées en $10^{-5}$}
+\end{center}
+\end{table}
+
+
+Ici, l’erreur quadratique moyenne minimale est obtenue au rang $h^{∗} = 2$. La proportion de vraies données manquantes est positivement corrélée à l'erreur quadratique moyenne. De surcroît, plus le nombre de fausses données manquantes augmente, plus l'erreur quadratique diminue peu importe la proportion de données manquantes initiales. 
+On en conclut que la qualité de reconstitution du tableau est proportionnelle au nombre de fausses valeurs manquantes et inversement proportionnelle au nombre de vraies valeurs manquantes. Cependant, dans le cas où beaucoup de données manquantes sont présentes dans le tableau, l'information restante est trop restreinte pour entraîner l'algorithme en créant des fausses données manquantes et la qualité de reconstitution en est impactée de manière négative.
+
+
+Les graphiques ci-dessous présentent des valeurs imputées selon plusieurs proportions de vraies et fausses données manquantes en fonction les valeurs initiales réelles standardisées. La comparaison entre les valeurs du tableau de données et les valeurs imputées peut être effectuée à l'aide de la droite d'équation $y=x$. Plus les points sont proches de cette droite, plus les données imputées sont fidèles à la réalité.
+
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/10F:10V.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées pour 20\% de Valeurs Manquantes (10\% de vraies valeurs manquantes et 10\% de fausses valeurs manquantes)}
+\end{figure}
+\end{center}
+%%
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/20F:20V.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées pour 40\% de Valeurs Manquantes (20\% de vraies valeurs manquantes et 20\% de fausses valeurs manquantes)}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/10F:60V.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées pour 70\% de Valeurs Manquantes (60\% de vraies valeurs manquantes et 10\% de fausses valeurs manquantes)}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/60F:10V.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées pour 70\% de Valeurs Manquantes (10\% de vraies valeurs manquantes et 60\% de fausses valeurs manquantes)}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/40F:40V.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées pour 80\% de Valeurs Manquantes (40\% de vraies valeurs manquantes et 40\% de fausses valeurs manquantes)}
+\end{figure}
+\end{center}
+
+
+Plus la proportion de données manquantes augmente, moins la reconstitution est correcte : ce phénomène est cohérent puisque l'information globale sur le tableau diminue. En effet, la qualité de reconstitution est dépendante de la quantité d'information disponible.
+
+\newpage
+
+\section{Deux tableaux en liaison}
+
+À présent, on veut généraliser la méthode utilisée pour un unique tableau de données à deux tableaux $X \in \mathbb{R}^{n\times p}$ et $Y \in \mathbb{R}^{n\times q}$ qui décrivent les mêmes individus à l'aide de variables différentes. $X$ est supposé pouvoir prédire linéairement $Y$. \\
+
+\subsection{Approximation au rang $1$ de $Y$}
+
+On cherche dans un premier temps à approcher $Y$ au rang 1 par un tableau fondé sur une composante de $X$. On veut donc résoudre le programme suivant :
+
+$$R : \displaystyle \min_{\substack{c \in \mathbb{R} \\ u \in \mathbb{R}^{p} \\ v \in \mathbb{R}^{q} , v^tv=1}}[\![Y-cXuv^t]\!]^{2}$$
+
+\begin{remark}
+    $v^tv=1$ correspond à une contrainte d'identifiabilité.
+\end{remark}
+
+Pour la suite, on note $ T = Xuv^t \in \mathbb{R}^{n\times q}$. De plus, on ajoute la contrainte $[|T|]^2 = 1$ à ce programme.
+
+En supposant que $T$ est donné, $c$ correspond à la constante minimisant $[|Y - cT|]^2$ et donc également à la distance entre $Y$ et $T$. Par définition de la projection orthogonale, $\hat{c} = [Y|T]$ de façon analogue à celle de $\hat{c}$ dans la partie précédente.
+Ainsi : 
+
+$$R \Leftrightarrow S : \displaystyle \max_{\substack{[|T|]^2 = 1 \\ u \in \mathbb{R}^{p} \\ v \in \mathbb{R}^{q} , v^tv=1}}[Y|T] $$
+
+
+\subsection{Résolution de $S$}
+
+\subsubsection{Le Lagrangien}
+    On réitère les mêmes étapes que pour la résolution du programme $P$. On a ainsi :
+    \begin{center}
+        \begin{aligned}
+        \mathcal{L} &= [Y|T] - \frac{\lambda}{2}(v^tv-1) - \frac{\mu}{2}([T|T]-1)\\  
+         &= tr(Y^tXuv^t) - \frac{\lambda}{2}(v^tv-1) - \frac{\mu}{2}(vu^tX^tXuv^t - 1)\\
+        &= v^tY^tXu - \frac{\lambda}{2}(v^tv-1) - \frac{\mu}{2}(v^tvu^tX^tXu-1)
+        \end{aligned}
+    \end{center}
+\hspace{2cm}
+
+En dérivant $\mathcal{L}$ par rapport à $\lambda,\mu,u$ et $v$ on obtient les équations suivantes : 
+
+\begin{flalign}
+        &\frac{\partial \mathcal{L}}{\partial \lambda} = 0 \Leftrightarrow v^tv-1 = 0\Leftrightarrow v^tv=1 \\
+        &\frac{\partial \mathcal{L}}{\partial \mu} = 0 \Leftrightarrow v^tvu^tX^tXu - 1 = 0\Leftrightarrow v^tvu^tX^tXu =1  \\
+        & \frac{\partial \mathcal{L}}{\partial u} = 0  \Leftrightarrow 
+X^tYv - \mu v^tvX^tXu = 0 \Leftrightarrow X^tYv = \mu X^tXu ~~~~\text{d'après (12)} \\
+        &\frac{\partial \mathcal{L}}{\partial v} = 0  \Leftrightarrow 
+Y^tXu - \lambda ~v - \mu v u^tX^tXu = 0 \Leftrightarrow Y^tX~u = \lambda ~v 
+    \end{flalign}
+
+
+\hspace{2cm}
+
+\begin{prop}
+    $\lambda = 0$
+\end{prop}
+
+\begin{proof}
+
+\begin{flalign}
+    (12) ~~\&~~ (13) &\Rightarrow u^tX^tXu = 1\\
+    (11) ~~\&~~(16) &\Rightarrow Y^tXu = (\lambda + \mu u^tX^tXu) ~ v\\ &\Leftrightarrow Y^tXu = (\lambda + \mu) ~ v 
+\end{flalign}
+ 
+ D'autre part:
+\begin{center}
+\begin{aligned}
+    u^t\times (17) &\Leftrightarrow u^tX^tYv = \mu~ u^tX^tXu\\
+    &\Leftrightarrow u^tX^tYv = \mu 
+   ~~~~\text{d'après (16)}\\
+   v^t\times (18) & \Leftrightarrow v^tY^tXu = \lambda + \mu \\
+   &\Leftrightarrow  u^tX^tYv = \lambda + \mu
+\end{aligned}
+\end{center} 
+
+On obtient finalement : $$\mu = \lambda + \mu \Rightarrow \lambda = 0 $$
+
+\end{proof}
+
+\subsubsection{Recherche de $u$ et $v$}
+
+\begin{prop}
+    $v$ est le vecteur propre de $ Y^tX(X^tX)^{-1}X^t Y $ associé à sa plus grande valeur propre. 
+\end{prop}
+
+\begin{proof}
+Premièrement :
+\begin{equation}
+    Y^tXu = (\lambda +\mu)v~~~ \text{d'après (18)} \Leftrightarrow Y^tXu = \mu ~v 
+\end{equation}
+D'autre part :  
+\begin{center}
+    \begin{aligned}
+        (Y^tX(X^tX)^{-1}) \times (14) &\Leftrightarrow Y^tX(X^tX)^{-1}X^tYv = \mu ~Y^tXu\\
+        &\Leftrightarrow Y^tX(X^tX)^{-1}X^tYv = \mu^2 ~v ~~\text{d'après (19)}\\
+        &\Leftrightarrow Y^tX(X^tX)^{-1}X^tYv = \theta ~v ~
+    \end{aligned}
+\end{center}
+   
+Par ce qui précède, $\mu$ doit être alors maximale donc $\theta$ également, d'où la conclusion.  
+\end{proof}
+
+\hspace{2cm}
+
+\begin{prop}
+    $u$ est le vecteur propre de $(X^tX)^{-1} X^tYY^tX $ associé à sa plus grande valeur propre. 
+\end{prop}
+
+\begin{proof}
+    De la même façon, on peut écrire :
+\begin{center}
+\begin{aligned}
+X^tY\times (19) &\Leftrightarrow X^tYY^tXu = \mu X^tYv \\
+&\Leftrightarrow X^tYY^tXu = \mu^2X^tXu ~~~~~ \text{d'après (14)} \\
+&\Leftrightarrow (X^tX)^{-1} X^tYY^tXu = \theta ~u 
+\end{aligned}
+\end{center}
+\end{proof}
+
+\vspace{0,5cm}
+
+Ainsi, $v$ est le vecteur propre de $Y^tX(X^tX)^{-1}X^t Y$ associé à sa plus grande valeur propre $\theta$ et $u$ est le vecteur propre de $(X^tX)^{-1} X^tYY^tX$ associé à cette même valeur propre $\theta$.
+
+En pratique, on cherchera d'abord $v$ en diagonalisant $Y^tX(X^tX)^{−1}X^tY$, qui est symétrique, puis on calculera le $u$ associé grâce à $(14) \Leftrightarrow u = (X^tX)^{-1} X^tYv / \sqrt{\theta}$
+\textit{(cf. programme en Annexe)}
+
+\vspace{0,5cm}
+\subsubsection{Orthogonalité des composantes $f = Xu$ solutions du $1^{\text{er}}$ ordre} 
+
+
+\begin{prop}
+    Les composantes $f = Xu$ solutions des conditions du $1^{\text{er}}$ ordre sont orthogonales. 
+\end{prop}
+
+\begin{proof}
+    Tout d'abord : 
+\begin{center}
+
+\begin{aligned}
+    &(X^tX)^{-1} X^tYY^tXu = \theta ~ u\\
+    &\Leftrightarrow X(X^tX)^{-1} X^tYY^tXu = \theta X u \\
+    &\Leftrightarrow X(X^tX)^{-1} X^tYY^tXu = \theta Xu\\
+    &\Leftrightarrow \Pi_X YY^tXu = \theta Xu
+\end{aligned}
+\end{center}
+
+Or $Xu \in \left\langle X \right\rangle$ donc : $Xu = \Pi_X Xu$ d'où :
+\begin{center}
+\begin{aligned}
+    &\Pi_X YY^tXu = \theta Xu \\
+    &\Leftrightarrow  \Pi_X YY^t\Pi_X Xu = \theta Xu\\
+    &\Leftrightarrow \Pi_XYY^t\Pi_Xf = \theta f 
+\end{aligned}
+\end{center}
+
+Les composantes $f = Xu$ solutions du $1^{\text{er}}$ ordre sont alors caractérisées comme des vecteurs propres d'une matrice symétrique. Elles sont donc orthogonales.
+
+\end{proof}
+
+\vspace{0,5cm}
+\subsubsection{Cas où la matrice $X$ n'est pas de plein rang en colonne}
+\label{sec: rang}
+\vspace{0,5cm}
+
+Si $X$ n'est pas de plein rang en colonne alors $X^tX$ n'est pas inversible. Cependant, le sous espace $\left\langle X \right\rangle$ existe et on peut obtenir une base orthogonale de $\left\langle X \right\rangle$. Il est possible de diagonaliser $XX^t$, il faut alors retenir les vecteurs propres associés à une valeur propre non nulle. Ces vecteurs correspondent alors aux composantes principales de $X$ associées à des valeurs propres strictement positives. Il en découle une base orthogonale $C$ de $\left\langle X \right\rangle$ : 
+
+$$\Pi_X = \Pi_C = C(C^tC)^{-1}C^t$$
+
+Cela élimine alors le problème en remplaçant $\Pi_X$ par $\Pi_C$ dans le raisonnement. En effet, $\left\langle X \right\rangle = \left\langle C \right\rangle$.
+\newpage
+
+\subsection{Approximation au rang $h$ de $Y$}
+
+Le but de cette partie est d'approximer $Y$ au rang $h$ à partir des composantes de $X$.
+
+\begin{remark}
+On note $F^k = [f^1,...,f^k]$ où $f^1,...,f^k$ sont les composantes de $X$. 
+\end{remark}
+
+\begin{prop}
+    $\forall u, s \in \mathbb{R}^p, \forall v, w \in \mathbb{R}^q : Xu \perp Xs \Rightarrow Xuv^t \perp Xs w^t$
+\end{prop}
+
+\begin{proof}
+
+On a :
+
+\begin{center}
+    \begin{aligned}
+    [Xuv^t|Xsw^t] &= tr((Xuv^t)^tXsw^t)\\
+    & = tr(v(Xu)^tXsw^t)\\
+    &=(Xu)^tXsw^tv\\
+    & =[Xu|Xs]~w^tv\\
+    & = 0 ~~~~\text{car}~~ Xu \perp Xs
+    \end{aligned}
+\end{center}
+\end{proof}
+
+
+
+\begin{prop}
+    Si les composantes $f^k = Xu_k$ sont orthogonales on a :
+    $$ cos^2(Y, \left\langle Xu_1v_1^t,...,Xu_hv_h^t \right\rangle) = \sum_{k=1}^h cos^2(Y,Xu_kv_k^t)$$
+\end{prop}
+
+\begin{proof}
+    Le projecteur orthogonal sur le sous-espace $\left\langle Xu_1v_1^t,...,Xu_hv_h^t \right\rangle$ de $\mathbb{R}^{n\times p}$ est égal à la somme des projecteurs orthogonaux sur les vecteurs $Xu_kv_k^t$ de $\mathbb{R}^{n\times p}$.
+\end{proof}
+
+\hspace{2cm}
+
+\begin{prop}
+    Si l'on dispose de $h-1$ composantes $f$ orthogonales, le programme $R$ de rang $h$ revient à :
+    $$ S_h : \displaystyle 
+    \max_{\substack{u \in \mathbb{R}^p, u^tu = 1\\ 
+    v \in \mathbb{R}^{q}, v^tv=1\\ 
+    (Xu)^tF^{h-1}=0}}
+    \frac{[Y|T]}{[|T|]} \cdot\lVert Xu\rVert
+$$
+    
+\end{prop}
+
+\begin{proof}
+Les $h-1$ premières composantes $f$ étant déjà déterminées, si on cherche une composante orthogonale à elles qui maximise $cos^2(Y, \left\langle Xu_1v_1^t,...,Xu_hv_h^t \right\rangle)$, cela revient donc, d'après ce qui précède, à maximiser $cos^2(Y,Xu_kv_k^t)$. On retrouve alors le programme $S$ de rang $1$ avec la contrainte d'orthogonalité $Xu \perp F^{h-1}$ en plus. 
+\end{proof}
+
+\begin{remark}
+    Dans ce cas, la contrainte d'orthogonalité des composantes n'est pas nécessaire. En effet, les solutions des conditions du $1^{\text{er}}$ ordre vérifient automatiquement la contrainte.
+\end{remark}
+
+
+Lorsque $X$ n'est pas de plein rang en colonne, le problème d'inversion de $X^tX$ se pose, de même que dans le cas de l'approximation de $Y$ au rang $1$. On pourra alors faire la même conclusion que dans la partie \textbf{\ref{sec: rang}}.
+
+On cherche à présent à trouver les coefficients $c_k$ de la combinaison linéaire des $T_k = Xu_kv_k^t$ qui approxime le mieux $Y$. On veut donc résoudre :
+
+$$  \displaystyle 
+    \min_{\substack{c}}~[|Y - \sum_{k=1}^h~c_k~X~u_k~v_k^t|]^2
+$$
+
+Les $c_k$ sont alors les coordonnées de $Y$ sur la base orthonormée des $T_k$. Ainsi : $$c_k = [Y|T_k] ~~~~~~\forall k \in [|1,h|]$$
+
+En conclusion, il faudra projeter $Y$ sur chaque composante. Si les composantes sont orthogonales alors les $f = Xu$ sont orthogonaux $T_k=Xu_kv_k^t$ sont orthogonaux. Grâce aux coordonnées de $X$ sur la base des $T_k$ on aura alors une décomposition de $X$ sur des tableaux de rang $1$ orthogonaux. 
+
+Cette technique est appelée \textbf{ACPVI} (ACP sur les Variables Instrumentales).
+
+\newpage
+
+\subsection{Combler les trous d'un tableau à partir de la formule d'approximation de rang $h$}
+
+Nous allons dans cette partie appliquer la méthode vue précédemment à l'imputation de données manquantes. Nous utilisons le même tableau de données que précédemment \textit{Regions} qui sera modélisé par la matrice $X$ et nous introduisons un deuxième tableau de données \textit{Scores} comportant les scores électoraux. Ce tableau sera alors modélisé par la matrice $Y$. Nous allons alors comparer les performances de l'ensemble des méthodes vues jusqu'à maintenant. 
+
+\subsubsection{Données manquantes dans $Y$}
+
+Nous supprimons de manière aléatoire, de la même façon que dans la partie \textbf{2.2.1}, des données du tableau $Y$. Ces données supprimées seront alors considérées comme des \textit{vraies} valeurs manquantes et ne seront pas prises en compte pour la reconstitution du tableau. On choisit de considérer une proportion de données manquantes initiales égale à 20\% pour obtenir une reconstitution satisfaisante.
+
+Dans un premier temps, on utilise la SVD itérée sur le tableau $Z=[X|Y]$ pour compléter les données de $Y$. La réprésentation graphique ci-dessous des données manquantes du tableau $Y$ montre que les données manquantes sont réparties de manière homogène sur l'ensemble de $Y$. 
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/donneesmanquantes.pdf}
+  \caption{Représentation Graphique des Données Manquantes des Scores Électoraux du Tableau de Données \textit{Régions}}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/2-20.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées par la Méthode de SVD pour 20\% de Valeurs Manquantes dans les Scores Électoraux}
+\end{figure}
+\end{center}
+
+Globalement, la reconstitution du tableau $Y$ est satisfaisante. En effet, la présence du tableau X apporte davantage d'information et permet une meilleure reconstitution des données manquantes de Y qu'avec Y seul. On observe que les données imputées sont très proches de la droite d'équation $y=x$ ce qui signifie qu'elles sont très proches des données réelles. Il existe des points dont l'estimation par la méthode de SVD est plus éloignée de la réalité : ceci est dû au fait que leur valeur initiale est originale par rapport au reste des valeurs. 
+
+Dans un second temps, on utilise l'ACPVI définie précédemment par l'équation :
+$$\hat{Y}_h = \sum_{k=1}^h~c_k~X~u_k~v_k^t$$
+
+Pour un tableau Y ayant 20\% de données manquantes, on obtient des valeurs imputées très éloignées des valeurs réelles. En effet, les valeurs propres de $Y^tX(X^tX)^{-1}X^t Y$ calculées par R sont trop grandes ce qui rend le calcul des valeurs imputées non fiable d'où le graphe ci-après.
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=1\textwidth]{graphes/complet.png}
+  \caption{Comparaison des Valeurs Réelles et Imputées par l'ACPVI pour 20\% de Valeurs Manquantes dans les Scores Électoraux}
+\end{figure}
+\end{center}
+
+Le graphe de comparaison des valeurs réelles et imputées par l'ACPVI pour 20\% de données manquantes est très peu précis : les valeurs imputées sont tellement grandes en comparaison aux valeurs réelles que la proximité à la droite d'équation $y=x$ ne peut être correctement évaluée. 
+
+
+\subsubsection{Données manquantes dans $Y$ et $X$}
+
+Nous supprimons aléatoirement des données des tableaux $X$ et $Y$. Ces valeurs seront les \textit{vraies} valeurs manquantes et ne participeront pas à la reconstitution des tableaux. On choisit également une proportion de données manquantes initiales égale à 20\% pour obtenir une reconstitution satisfaisante.
+
+Dans un premier temps, on utilise la SVD itérée sur le tableau $Z=[X|Y]$ pour compléter les données de $Y$. Sur la représentation graphique des données manquantes du tableau $Z$ suivant, on remarque une nouvelle fois que la méthode employée pour supprimer ces données répartit équitablement les données dans le tableau.
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/22:20.pdf}
+  \caption{Représentation Graphique des Données Manquantes du Tableau de Données \textit{Régions}}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/2:20:imputation.pdf}
+  \caption{Comparaison des Valeurs Réelles et Imputées par la Méthode de SVD pour 20\% de Valeurs Manquantes dans le Tableau de Données \textit{Régions}}
+\end{figure}
+\end{center}
+
+Pour 20\% de données manquantes dans le tableau de données \textit{Régions}, la reconstitution est plutôt correcte : une grande proportion des valeurs imputées est très proche de la réalité, sauf quelques unes s'éloignant de la première bissectrice.
+De plus, on remarque une valeur particulièrement éloignée de la droite d'équation $y=x$ : il s'agit du nombre de résidences secondaires en Corse. En effet, cette région est une destination attractive et touristique proche de la France Métropolitaine donc assez facile d'accès et prisée comme lieu de résidence secondaire. Ainsi, l'erreur d'estimation de cette valeur par la méthode de la SVD est très grande car cette valeur était difficilement prévisible au vu des données globales du tableau.
+
+Dans un second temps, on utilise la SVD afin de compléter le tableau $X$ composé de 20\% de données manquantes puis la méthode ACPVI pour compléter le tableau $Y$ également composé de 20\% de données manquantes. Ci-dessous se trouve le graphique de comparaison des valeurs imputées et réelles.
+
+\begin{center}
+\begin{figure}[H]
+\centering
+  \includegraphics[width=0.7\textwidth]{graphes/incomplet.png}
+  \caption{Comparaison des Valeurs Réelles et Imputées par l'ACPVI pour 20\% de Valeurs Manquantes dans le Tableau de Données \textit{Régions}}
+\end{figure}
+\end{center}
+
+\begin{remark}
+    Comme précédemment, la droite tracée en bleu est d'équation $y=x$
+\end{remark}
+
+À nouveau, les valeurs imputées sont très éloignées des vraies valeurs.
+
+\subsubsection{Comparaison des Méthodes}
+
+Les erreurs quadratiques moyennes de prédiction obtenues entre $Y$ et $\hat{Y}$ pour la méthode de la SVD itérée sont $4.97$ et $6.66$ arrondies à $10^{-2}$ avec respectivement X complet et incomplet. 
+
+Pour la méthode de l'ACPVI, les valeurs propres obtenues sur R sont extrêmement grandes et ne permettent pas de conclure pour ce tableau de données : les résultats ne sont pas fiables.
+
+La première méthode apporte une meilleure approximation du tableau Y que X soit complet ou non : la méthode de SVD est alors plus fiable pour la complétion des données. Les différents graphes montrent également que le tableau est beaucoup mieux reconstitué par la méthode de la SVD que par celle de l'ACPVI. De plus, on remarque que la différence d'erreur quadratique moyenne de prédiction de Y pour X complet et incomplet est égale à $1.69$ pour 20\% de données manquantes. L'information supplémentaire de X permet ainsi d'améliorer l'approximation des 20\% de données manquantes pour ce tableau.
+
+\section{Conclusion}
+
+Ce projet fut l'opportunité de prendre conscience de l'importance des données manquantes et de la complexité des techniques utilisées pour les imputer. En explorant la méthode de reconstitution par SVD, nous avons approfondi nos connaissances en matière d'analyse de données multidimensionnelles. De plus, nous avons pu améliorer nos compétences en programmation en développant des programmes pour mettre en œuvre les méthodes théoriques étudiées. Ce projet a donc été enrichissant à la fois sur le plan théorique et pratique, nous permettant d'acquérir de nouvelles compétences et de mieux appréhender les défis liés aux données manquantes dans l'analyse de données.
+
+
+En conclusion, ce projet nous a sensibilisées aux limites et aux incertitudes associées aux méthodes de reconstitution des données manquantes. Bien que la méthode de la SVD ait montré des résultats encourageants, il est important de garder à l'esprit qu'elle repose sur certaines hypothèses et approximations. Il est essentiel de bien comprendre les limitations et les biais potentiels introduits par ces méthodes afin de les utiliser de manière éclairée dans des contextes réels.
+
+Par ailleurs, la gestion des données manquantes dans les ensembles de données volumineux et complexes représente un défi majeur. L'exploration de techniques de réduction de dimension et de sélection de variables pourrait être une piste intéressante pour gérer efficacement les données manquantes dans de tels contextes.
+\newpage
+
+\section{Annexe}
+
+Vous trouverez l'ensemble du code R utilisé dans ce rapport dans le dépôt Git suivant : 
+https://github.com/lilouzulewski/HAX817X$\_$MIDAS
+
+
+\section{Bibliographie}
+
+[1] ADM-L5, Analyse en Composantes Principales, X. Bry, 2016
+
+\end{document}

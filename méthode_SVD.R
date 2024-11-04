@@ -101,7 +101,7 @@ visualisation_données_manquantes <- function (données_dupliquées) {
 imputer_colonne_par_moyenne <- function (données_dupliquées_bis) {
   moyenne_colonne <<- as.vector(colMeans(données_dupliquées_bis, na.rm=TRUE))
   for (i in 1:nrow(données_dupliquées_bis)) {
-    for (j in 1:ncol(données)) {
+    for (j in 1:ncol(données_dupliquées_bis)) {
       if (is.na(données_dupliquées_bis[i,j])==TRUE) {
         données_dupliquées_bis[i,j] <<- moyenne_colonne[j]
       }
@@ -142,7 +142,7 @@ imputation_svd <- function (données_dupliquées) {
     erreur <<- (mssold - mss)/mss0
     mssold <<- mss
     eqmp <- rmse(données[données_manquantes], données_imputées[données_manquantes])
-    cat("Rang: ", iteration, "Erreur Quadratique Moyenne de Prédiction:", eqmp)
+    cat("Rang: ", iteration, "Erreur Quadratique Moyenne de Prédiction:", eqmp, "\n")
   }
 }
 
